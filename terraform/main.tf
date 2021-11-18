@@ -3,13 +3,8 @@ data "azurerm_resource_group" "rg" {
 }
 
 ## ===== CosmosDB-Mongo
-resource "random_integer" "ri" {
-  min = 10000
-  max = 99999
-}
-
 resource "azurerm_cosmosdb_account" "mongoAccount" {
-  name                = "tfex-cosmos-db-${random_integer.ri.result}"
+  name                = "tfex-cosmos-db-2468"
   location            = data.azurerm_resource_group.rg.location
   resource_group_name = data.azurerm_resource_group.rg.name
   offer_type          = "Standard"
@@ -96,6 +91,18 @@ resource "azurerm_network_security_group" "nsg" {
     source_address_prefix      = "*"
     destination_address_prefix = "*"
   }
+
+  security_rule {
+    name                       = "SSH"
+    priority                   = 102
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "22"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
 }
 
 resource "azurerm_public_ip" "public-ip-vm" {
@@ -156,4 +163,47 @@ resource "azurerm_linux_virtual_machine" "rabbitmq_vm" {
     publisher = "bitnami"
     product   = "rabbitmq"
   }
+}
+
+## ===== Container Registry
+resource "azurerm_container_registry" "acr" {
+  name                = "containerRegistryPiggy"
+  resource_group_name = data.azurerm_resource_group.rg.name
+  location            = data.azurerm_resource_group.rg.location
+  sku                 = "Premium"
+  admin_enabled       = false
+}
+
+## ===== K8s cluster
+resource "azurerm_kubernetes_cluster" "k8s_piggy" {
+  name                = "piggymetrics-aks1"
+  location            = "Central US"
+  resource_group_name = data.azurerm_resource_group.rg.name
+  dns_prefix          = "piggymetrics-dns"
+
+  default_node_pool {
+    name       = "default"
+    node_count = 5
+    vm_size    = "Standard_DS3_v2" 
+    #D2
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+
+output "client_certificate" {
+  value = azurerm_kubernetes_cluster.k8s_piggy.kube_config.0.client_certificate
+}
+
+output "kube_config" {
+  value = azurerm_kubernetes_cluster.k8s_piggy.kube_config_raw
+  sensitive = true
+}
+
+resource "azurerm_role_assignment" "k8s_to_acr" {
+  scope                = azurerm_container_registry.acr.id
+  role_definition_name = "AcrPull"
+  principal_id         = azurerm_kubernetes_cluster.k8s_piggy.kubelet_identity[0].object_id
 }
