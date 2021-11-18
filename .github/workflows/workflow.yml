@@ -33,7 +33,7 @@ jobs:
     steps:
       - uses: actions/checkout@master
       - name: Login Azure
-        uses: azure/login
+        uses: azure/login@v1
         with:
           client-id: 206e9a7f-0ebf-43da-8b3b-dc97cbd59fde
           tenant-id: c8cd0425-e7b7-4f3d-9215-7e5fa3f439e8
