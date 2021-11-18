@@ -44,15 +44,15 @@ jobs:
     #    secrets:  '*'
     
     - run: |
-         export CONTAINER_REGISTRY=${{ env.AZURE_CONTAINER_REGISTRY }}
-         export IMAGE_TAG=${{ env.IMAGE_TAG }}
+         export CONTAINER_REGISTRY=${{ secrets.AZURE_CONTAINER_REGISTRY }}
+         export IMAGE_TAG=${{ secrets.IMAGE_TAG }}
          echo 'Install ACR AAD credential helper and login'
           curl -L https://aka.ms/acr/installaad/bash | /bin/bash
-          az acr login -n ${{ env.AZURE_CONTAINER_REGISTRY }}
+          az acr login -n ${{ secrets.AZURE_CONTAINER_REGISTRY }}
           echo 'Start Build'
           cd config
           mvn compile jib:build \
-              -Djib.container.environment=CONFIG_SERVICE_PASSWORD=${{ env.CONFIG_SERVICE_PASSWORD }} 
+              -Djib.container.environment=CONFIG_SERVICE_PASSWORD=${{ secrets.CONFIG_SERVICE_PASSWORD }} 
 
           cd ../registry
           mvn compile jib:build 
