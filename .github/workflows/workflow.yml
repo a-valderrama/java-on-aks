@@ -32,6 +32,13 @@ jobs:
     environment: terraform-testing
     steps:
     - uses: actions/checkout@master
+    - name: OIDC Login to Azure Public Cloud with AzPowershell (enableAzPSSession true)
+      uses: azure/login@v1
+      with:
+        client-id: ${{ secrets.AZURE_CLIENT_ID }}
+        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+        enable-AzPSSession: true
     
     # Fetch secrets from Azure Key Vault
     # - uses: Azure/login@v1
@@ -44,6 +51,7 @@ jobs:
     #    secrets:  '*'
     
     - run: |
+         az login 
          export CONTAINER_REGISTRY=${{ secrets.AZURE_CONTAINER_REGISTRY }}
          export IMAGE_TAG=${{ secrets.IMAGE_TAG }}
          echo 'Install ACR AAD credential helper and login'
