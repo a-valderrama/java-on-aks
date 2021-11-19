@@ -33,9 +33,8 @@ jobs:
       - name: Login Azure
         uses: azure/login@v1
         with:
-          creds: ${{ secrets.AKS_CREDENTIALS_CARMEN }}
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
           environment: azurecloud
-          # enable-AzPSSession: true
           allow-no-subscriptions: true
     
     # Fetch secrets from Azure Key Vault
@@ -48,116 +47,110 @@ jobs:
     #    keyvault: ${{ secrets.AZURE_KEY_VAULT }}
     #    secrets:  '*'
     
-       # Set the target Azure Kubernetes Service (AKS) cluster. 
-      - uses: azure/aks-set-context@v1
-        with:
-            creds: ${{ secrets.AKS_CREDENTIALS_CARMEN }}
-            resource-group: demoey
-            cluster-name: aksdemo
-
-      # Create namespace if doesn't exist
       - run: |
-          kubectl create namespace ${{ secrets.AKS_NAMESPACE }} --dry-run -o json | kubectl apply -f -
+         export CONTAINER_REGISTRY=${{ secrets.AZURE_CONTAINER_REGISTRY }}
+         export IMAGE_TAG=${{ secrets.IMAGE_TAG }}
+         echo 'Install ACR AAD credential helper and login'
+          curl -L https://aka.ms/acr/installaad/bash | /bin/bash
+          az acr login -n ${{ secrets.AZURE_CONTAINER_REGISTRY }}
+          echo 'Start Build'
+          cd config
+          mvn compile jib:build \
+              -Djib.container.environment=CONFIG_SERVICE_PASSWORD=${{ secrets.CONFIG_SERVICE_PASSWORD }} 
 
-  #     - run: |
-  #        az login 
-  #        export CONTAINER_REGISTRY=${{ secrets.AZURE_CONTAINER_REGISTRY }}
-  #        export IMAGE_TAG=${{ secrets.IMAGE_TAG }}
-  #        echo 'Install ACR AAD credential helper and login'
-  #         curl -L https://aka.ms/acr/installaad/bash | /bin/bash
-  #         az acr login -n ${{ secrets.AZURE_CONTAINER_REGISTRY }}
-  #         echo 'Start Build'
-  #         cd config
-  #         mvn compile jib:build \
-  #             -Djib.container.environment=CONFIG_SERVICE_PASSWORD=${{ secrets.CONFIG_SERVICE_PASSWORD }} 
+          cd ../registry
+          mvn compile jib:build 
 
-  #         cd ../registry
-  #         mvn compile jib:build 
+          cd ../gateway
+          mvn compile jib:build
 
-  #         cd ../gateway
-  #         mvn compile jib:build
-
-  #         cd ../auth-service
-  #         mvn compile jib:build 
+          cd ../auth-service
+          mvn compile jib:build 
           
-  #         cd ../account-service
-  #         mvn compile jib:build \
-  #             -Djib.container.environment=ACCOUNT_SERVICE_PASSWORD=${{ env.ACCOUNT-SERVICE-PASSWORD }} 
+          cd ../account-service
+          mvn compile jib:build \
+              -Djib.container.environment=ACCOUNT_SERVICE_PASSWORD=${{ env.ACCOUNT-SERVICE-PASSWORD }} 
                
-  #         cd ../statistics-service
-  #         mvn compile jib:build \
-  #             -Djib.container.environment=STATISTICS_SERVICE_PASSWORD=${{ env.STATISTICS-SERVICE-PASSWORD }} 
-  #         cd ../notification-service
-  #         mvn compile jib:build \
-  #             -Djib.container.environment=NOTIFICATION_SERVICE_PASSWORD=${{ env.NOTIFICATION-SERVICE-PASSWORD }} 
+          cd ../statistics-service
+          mvn compile jib:build \
+              -Djib.container.environment=STATISTICS_SERVICE_PASSWORD=${{ env.STATISTICS-SERVICE-PASSWORD }} 
+          cd ../notification-service
+          mvn compile jib:build \
+              -Djib.container.environment=NOTIFICATION_SERVICE_PASSWORD=${{ env.NOTIFICATION-SERVICE-PASSWORD }} 
 
-  #         echo 'Build complete'
+          echo 'Build complete'
       
     
-  # deploy-to-aks:
-  #   needs: build
-  #   runs-on: ubuntu-latest
-  #   environment: terraform-testing
-  #   steps:
-  #   - uses: actions/checkout@master
+  deploy-to-aks:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: terraform-testing
+    steps:
+    - uses: actions/checkout@master
+    - name: Login Azure
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+        environment: azurecloud
+        enable-AzPSSession: true
+        allow-no-subscriptions: true
 
-  #   # Cluster get credentials 
-  #   - run: |
-          # az login 
-  #       az aks get-credentials --name piggymetrics-aks1 --resource-group alejandro-valderrama
+    # Cluster get
+    - run: |
+        az aks get-credentials --name piggymetrics-aks1 --resource-group alejandro-valderrama
 
-  #   # Set the target Azure Kubernetes Service (AKS) cluster. 
-  #   - uses: azure/aks-set-context@v1
-  #     with:
-  #         creds: ${{ secrets.AZURE_CREDENTIALS }}
-  #         resource-group: ${{ secrets.RG }}
-  #         cluster-name: piggymetrics-aks1
+    # Set the target Azure Kubernetes Service (AKS) cluster. 
+    - uses: azure/aks-set-context@v1
+      with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          resource-group: ${{ secrets.RG }}
+          cluster-name: piggymetrics-aks1
 
-  #   # Create namespace if doesn't exist
-  #   - run: |
-  #       kubectl create namespace ${{ secrets.AKS_NAMESPACE }} --dry-run -o json | kubectl apply -f -
+    # Create namespace if doesn't exist
+    - run: |
+        kubectl create namespace ${{ secrets.AKS_NAMESPACE }} --dry-run -o json | kubectl apply -f -
    
-  #  # Fetch secrets from Azure Key Vault
-  #   - uses: Azure/login@v1
-  #     with:
-  #       creds: ${{ secrets.AZURE_CREDENTIALS }}
+   # Fetch secrets from Azure Key Vault
+    - uses: Azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-  #   # - name: Azure key vault - Get Secrets
-  #   #   uses: azure/get-keyvault-secrets@v1
-  #   #   with:
-  #   #    keyvault: ${{ secrets.AZURE_KEY_VAULT }}
-  #   #    secrets:  '*'
+    # - name: Azure key vault - Get Secrets
+    #   uses: azure/get-keyvault-secrets@v1
+    #   with:
+    #    keyvault: ${{ secrets.AZURE_KEY_VAULT }}
+    #    secrets:  '*'
        
-  #   # Create generic secrets to be available on pods
-  #   - uses: azure/k8s-create-secret@v1
-  #     with:
-  #       namespace: ${{ secrets.AKS_NAMESPACE }}
-  #       secret-type: 'generic'
-  #       #arguments: --from-literal=config_service_password=${{ secrets.CONFIG_SERVICE_PASSWORD }} --from-literal=notification_service_password=${{ secrets.NOTIFICATION_SERVICE_PASSWORD }} --from-literal=statistics_service_password=${{ secrets.STATISTICS_SERVICE_PASSWORD }} --from-literal=account_service_password=${{ secrets.ACCOUNT_SERVICE_PASSWORD }} --from-literal=rabbitmq_password=${{ secrets.RABBITMQ_PASSWORD }} --from-literal=mongodb_uri=${{ secrets.MONGODB_URI }}  --from-literal=mongodb_database=${{ secrets.MONGODB_DATABASE }} --from-literal=rabbitmq_username=${{ secrets.RABBITMQ_USERNAME }} --from-literal=rabbitmq_host=${{ secrets.RABBITMQ_HOST }} --from-literal=rabbitmq_port=${{ secrets.RABBITMQ_PORT }}  --from-literal=notification_email_user=${{ secrets.NOTIFICATION_EMAIL_USER }} --from-literal=notification_email_pass=${{ secrets.NOTIFICATION_EMAIL_PASSWORD }}  --from-literal=notification_email_host=${{ secrets.NOTIFICATION_EMAIL_HOST }} --from-literal=notification_email_port=${{ secrets.NOTIFICATION_EMAIL_PORT }} 
-  #       arguments: --from-literal=config_service_password=${{ env.CONFIG-SERVICE-PASSWORD }} --from-literal=notification_service_password=${{ env.NOTIFICATION-SERVICE-PASSWORD }} --from-literal=statistics_service_password=${{ env.STATISTICS-SERVICE-PASSWORD }} --from-literal=account_service_password=${{ env.ACCOUNT-SERVICE-PASSWORD }} --from-literal=rabbitmq_password=${{ env.RABBITMQ-PASSWORD }} --from-literal=mongodb_uri=${{ secrets.MONGODB_URI }}  --from-literal=mongodb_database=${{ secrets.MONGODB_DATABASE }} --from-literal=rabbitmq_username=${{ secrets.RABBITMQ_USERNAME }} --from-literal=rabbitmq_host=${{ env.RABBITMQ_HOST }} --from-literal=rabbitmq_port=${{ env.RABBITMQ_PORT }}  --from-literal=notification_email_user=${{ env.SMTP-USER }} --from-literal=notification_email_pass=${{ secrets.SMTP_PASSWORD }}  --from-literal=notification_email_host=${{ env.NOTIFICATION-EMAIL-HOST }} --from-literal=notification_email_port=${{ env.NOTIFICATION-EMAIL-PORT }} 
-  #       secret-name: piggymetrics
+    # Create generic secrets to be available on pods
+    - uses: azure/k8s-create-secret@v1
+      with:
+        namespace: ${{ secrets.AKS_NAMESPACE }}
+        secret-type: 'generic'
+        #arguments: --from-literal=config_service_password=${{ secrets.CONFIG_SERVICE_PASSWORD }} --from-literal=notification_service_password=${{ secrets.NOTIFICATION_SERVICE_PASSWORD }} --from-literal=statistics_service_password=${{ secrets.STATISTICS_SERVICE_PASSWORD }} --from-literal=account_service_password=${{ secrets.ACCOUNT_SERVICE_PASSWORD }} --from-literal=rabbitmq_password=${{ secrets.RABBITMQ_PASSWORD }} --from-literal=mongodb_uri=${{ secrets.MONGODB_URI }}  --from-literal=mongodb_database=${{ secrets.MONGODB_DATABASE }} --from-literal=rabbitmq_username=${{ secrets.RABBITMQ_USERNAME }} --from-literal=rabbitmq_host=${{ secrets.RABBITMQ_HOST }} --from-literal=rabbitmq_port=${{ secrets.RABBITMQ_PORT }}  --from-literal=notification_email_user=${{ secrets.NOTIFICATION_EMAIL_USER }} --from-literal=notification_email_pass=${{ secrets.NOTIFICATION_EMAIL_PASSWORD }}  --from-literal=notification_email_host=${{ secrets.NOTIFICATION_EMAIL_HOST }} --from-literal=notification_email_port=${{ secrets.NOTIFICATION_EMAIL_PORT }} 
+        arguments: --from-literal=config_service_password=${{ env.CONFIG-SERVICE-PASSWORD }} --from-literal=notification_service_password=${{ env.NOTIFICATION-SERVICE-PASSWORD }} --from-literal=statistics_service_password=${{ env.STATISTICS-SERVICE-PASSWORD }} --from-literal=account_service_password=${{ env.ACCOUNT-SERVICE-PASSWORD }} --from-literal=rabbitmq_password=${{ env.RABBITMQ-PASSWORD }} --from-literal=mongodb_uri=${{ secrets.MONGODB_URI }}  --from-literal=mongodb_database=${{ secrets.MONGODB_DATABASE }} --from-literal=rabbitmq_username=${{ secrets.RABBITMQ_USERNAME }} --from-literal=rabbitmq_host=${{ env.RABBITMQ_HOST }} --from-literal=rabbitmq_port=${{ env.RABBITMQ_PORT }}  --from-literal=notification_email_user=${{ env.SMTP-USER }} --from-literal=notification_email_pass=${{ secrets.SMTP_PASSWORD }}  --from-literal=notification_email_host=${{ env.NOTIFICATION-EMAIL-HOST }} --from-literal=notification_email_port=${{ env.NOTIFICATION-EMAIL-PORT }} 
+        secret-name: piggymetrics
     
     
-  #    # Replace CONTAINER_REGISTRY & IMAGE_TAG  in all the manifest files
-  #   - uses: cschleiden/replace-tokens@v1
-  #     with:
-  #       tokenPrefix: '${'
-  #       tokenSuffix: '}'
-  #       files: '["kubernetes/*.yaml"]'
-  #     env:
-  #       CONTAINER_REGISTRY: ${{ secrets.AZURE-CONTAINER-REGISTRY }}
-  #       IMAGE_TAG: ${{ env.IMAGE_TAG }}
+     # Replace CONTAINER_REGISTRY & IMAGE_TAG  in all the manifest files
+    - uses: cschleiden/replace-tokens@v1
+      with:
+        tokenPrefix: '${'
+        tokenSuffix: '}'
+        files: '["kubernetes/*.yaml"]'
+      env:
+        CONTAINER_REGISTRY: ${{ secrets.AZURE-CONTAINER-REGISTRY }}
+        IMAGE_TAG: ${{ env.IMAGE_TAG }}
     
     
-  #    # Deploy app to AKS
-  #   - uses: azure/k8s-deploy@replaceLogic
-  #     with:
-  #       manifests: |
-  #         kubernetes/1-config.yaml
-  #         kubernetes/2-registry.yaml
-  #         kubernetes/3-gateway.yaml
-  #         kubernetes/4-auth-service.yaml
-  #         kubernetes/5-account-service.yaml
-  #         kubernetes/6-statistics-service.yaml
-  #         kubernetes/7-notification-service.yaml
-  #       namespace: ${{ secrets.AKS_NAMESPACE }}
+     # Deploy app to AKS
+    - uses: azure/k8s-deploy@replaceLogic
+      with:
+        manifests: |
+          kubernetes/1-config.yaml
+          kubernetes/2-registry.yaml
+          kubernetes/3-gateway.yaml
+          kubernetes/4-auth-service.yaml
+          kubernetes/5-account-service.yaml
+          kubernetes/6-statistics-service.yaml
+          kubernetes/7-notification-service.yaml
+        namespace: ${{ secrets.AKS_NAMESPACE }}
