@@ -46,7 +46,8 @@
 						<image>mcr.microsoft.com/java/jre-headless:8u232-zulu-alpine</image>
 					</from>
 					<to>
-						<image>${env.CONTAINER_REGISTRY}.azurecr.io/${parent.artifactId}/${project.name}:${env.IMAGE_TAG}</image>
+						<!--<image>${env.CONTAINER_REGISTRY}.azurecr.io/${parent.artifactId}/${project.name}:${env.IMAGE_TAG}</image>-->
+						<image>containerregistrypiggy.azurecr.io/${parent.artifactId}/${project.name}:prod</image>
 					</to>
 					<container>
 						<jvmFlags>
