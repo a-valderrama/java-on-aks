@@ -33,7 +33,7 @@ jobs:
       - name: Login Azure
         uses: azure/login@v1
         with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          creds: ${{ secrets.AZURE_CREDENTIALS_2 }}
           environment: azurecloud
           allow-no-subscriptions: true
     
@@ -48,7 +48,6 @@ jobs:
     #    secrets:  '*'
     
       - run: |
-         az login
          export CONTAINER_REGISTRY=${{ secrets.AZURE_CONTAINER_REGISTRY }}
          export IMAGE_TAG=${{ secrets.IMAGE_TAG }}
          echo 'Install ACR AAD credential helper and login'
@@ -91,19 +90,19 @@ jobs:
     - name: Login Azure
       uses: azure/login@v1
       with:
-        creds: ${{ secrets.AZURE_CREDENTIALS }}
+        creds: ${{ secrets.AZURE_CREDENTIALS_2 }}
         environment: azurecloud
         enable-AzPSSession: true
         allow-no-subscriptions: true
 
     # Cluster get
-    - run: |
-        az aks get-credentials --name piggymetrics-aks1 --resource-group alejandro-valderrama
+    # - run: |
+    #     az aks get-credentials --name piggymetrics-aks1 --resource-group alejandro-valderrama --admin
 
     # Set the target Azure Kubernetes Service (AKS) cluster. 
     - uses: azure/aks-set-context@v1
       with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          creds: ${{ secrets.AZURE_CREDENTIALS_2 }}
           resource-group: ${{ secrets.RG }}
           cluster-name: piggymetrics-aks1
 
@@ -114,7 +113,7 @@ jobs:
    # Fetch secrets from Azure Key Vault
     - uses: Azure/login@v1
       with:
-        creds: ${{ secrets.AZURE_CREDENTIALS }}
+        creds: ${{ secrets.AZURE_CREDENTIALS_2 }}
 
     # - name: Azure key vault - Get Secrets
     #   uses: azure/get-keyvault-secrets@v1
