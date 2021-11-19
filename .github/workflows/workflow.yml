@@ -95,8 +95,7 @@ jobs:
       with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
           resource-group: ${{ secrets.RG }}
-          cluster-name: ${{ env.AKS_CLUSTER }}
-          environment: azurecloud
+          cluster-name: piggymetrics-aks1
 
     # Create namespace if doesn't exist
     - run: |
