@@ -13,8 +13,6 @@ on:
   push:
     branches:
       - terraform
-    # paths:
-    #   - .github/workflows/workflow.yml
     
 env:
   CONFIG_PORT: '8888'
