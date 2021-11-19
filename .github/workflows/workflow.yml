@@ -55,6 +55,10 @@ jobs:
             resource-group: demoey
             cluster-name: aksdemo
 
+      # Create namespace if doesn't exist
+      - run: |
+          kubectl create namespace ${{ secrets.AKS_NAMESPACE }} --dry-run -o json | kubectl apply -f -
+
   #     - run: |
   #        az login 
   #        export CONTAINER_REGISTRY=${{ secrets.AZURE_CONTAINER_REGISTRY }}
