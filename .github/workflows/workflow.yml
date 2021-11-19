@@ -70,15 +70,6 @@ jobs:
 
           cd ../auth-service
           mvn compile jib:build 
-          
-          cd ../account-service
-          mvn compile jib:build 
-               
-          cd ../statistics-service
-          mvn compile jib:build 
-
-          cd ../notification-service
-          mvn compile jib:build 
 
           echo 'Build complete'
       
