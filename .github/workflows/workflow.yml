@@ -33,7 +33,7 @@ jobs:
       - name: Login Azure
         uses: azure/login@v1
         with:
-          creds: ${{ secrets.AZURE_CREDENTIALS_2 }}
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
           environment: azurecloud
           allow-no-subscriptions: true
     
@@ -90,7 +90,7 @@ jobs:
     - name: Login Azure
       uses: azure/login@v1
       with:
-        creds: ${{ secrets.AZURE_CREDENTIALS_2 }}
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
         environment: azurecloud
         enable-AzPSSession: true
         allow-no-subscriptions: true
@@ -102,7 +102,7 @@ jobs:
     # Set the target Azure Kubernetes Service (AKS) cluster. 
     - uses: azure/aks-set-context@v1
       with:
-          creds: ${{ secrets.AZURE_CREDENTIALS_2 }}
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
           resource-group: ${{ secrets.RG }}
           cluster-name: piggymetrics-aks1
 
@@ -113,7 +113,7 @@ jobs:
    # Fetch secrets from Azure Key Vault
     - uses: Azure/login@v1
       with:
-        creds: ${{ secrets.AZURE_CREDENTIALS_2 }}
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
 
     # - name: Azure key vault - Get Secrets
     #   uses: azure/get-keyvault-secrets@v1
