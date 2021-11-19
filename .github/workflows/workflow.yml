@@ -48,6 +48,7 @@ jobs:
     #    secrets:  '*'
     
       - run: |
+         az login
          export CONTAINER_REGISTRY=${{ secrets.AZURE_CONTAINER_REGISTRY }}
          export IMAGE_TAG=${{ secrets.IMAGE_TAG }}
          echo 'Install ACR AAD credential helper and login'
