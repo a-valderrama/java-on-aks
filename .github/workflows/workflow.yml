@@ -60,15 +60,6 @@ jobs:
           mvn compile jib:build \
               -Djib.container.environment=CONFIG_SERVICE_PASSWORD=${{ secrets.CONFIG_SERVICE_PASSWORD }} 
 
-          cd ../registry
-          mvn compile jib:build 
-
-          cd ../gateway
-          mvn compile jib:build
-
-          cd ../auth-service
-          mvn compile jib:build 
-
           echo 'Build complete'
       
     
