@@ -90,6 +90,10 @@ jobs:
     steps:
     - uses: actions/checkout@master
 
+    # Cluster login
+    - run: |
+        az aks get-credentials --name piggymetrics-aks1 --resource-group alejandro-valderrama
+
     # Set the target Azure Kubernetes Service (AKS) cluster. 
     - uses: azure/aks-set-context@v1
       with:
