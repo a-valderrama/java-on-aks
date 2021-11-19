@@ -89,13 +89,15 @@ jobs:
     environment: terraform-testing
     steps:
     - uses: actions/checkout@master
+
     # Set the target Azure Kubernetes Service (AKS) cluster. 
     - uses: azure/aks-set-context@v1
       with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
+          resource-group: ${{ secrets.RG }}
+          cluster-name: ${{ env.AKS_CLUSTER }}
           environment: azurecloud
-          enable-AzPSSession: true
-          allow-no-subscriptions: true
+
     # Create namespace if doesn't exist
     - run: |
         kubectl create namespace ${{ secrets.AKS_NAMESPACE }} --dry-run -o json | kubectl apply -f -
@@ -104,7 +106,7 @@ jobs:
     - uses: Azure/login@v1
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
-        
+
     # - name: Azure key vault - Get Secrets
     #   uses: azure/get-keyvault-secrets@v1
     #   with:
