@@ -117,7 +117,7 @@ jobs:
         IMAGE_TAG: ${{ env.IMAGE_TAG }}
     
     - run: |
-        source .scripts/setup-env-variables-azure-.sh
+        source ./.scripts/setup-env-variables-azure-.sh
 
      # Deploy app to AKS
     - uses: azure/k8s-deploy@replaceLogic
