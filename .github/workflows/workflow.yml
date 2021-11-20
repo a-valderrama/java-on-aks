@@ -94,15 +94,10 @@ jobs:
         method: kubeconfig
         kubeconfig: ${{ secrets.KUBE_CONFIG }}
       id: setcontext
-    # - uses: azure/aks-set-context@v1
-    #   with:
-    #       creds: ${{ secrets.AZURE_CREDENTIALS }}
-    #       resource-group: ${{ secrets.RG }}
-    #       cluster-name: piggymetrics-aks1
 
-    # Create namespace if doesn't exist
+    # Create namespace if doesn't exist -> send to default (namespace)
     - run: |
-        kubectl create namespace ${{ secrets.AKS_NAMESPACE }} --dry-run -o json | kubectl apply -f -
+        kubectl create namespace --dry-run -o json | kubectl apply -f -
    
    # Fetch secrets from Azure Key Vault
     # - uses: Azure/login@v1
