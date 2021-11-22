@@ -20,15 +20,15 @@ spec:
 status:
   loadBalancer: {}
 ---
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
+  name: config
   labels:
     project: piggymetrics
     tier: middleware
     app: config
-  name: config
-spec:
+spec.slector:
   replicas: 1
   strategy:
     type: RollingUpdate

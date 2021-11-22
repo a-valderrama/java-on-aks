@@ -101,7 +101,7 @@
 						<image>mcr.microsoft.com/java/jre-headless:8u232-zulu-alpine</image>
 					</from>
 					<to>
-						<image>containerregistrypiggy.azurecr.io/piggymetrics-authservice:version1.0</image>
+						<image>containerregistrypiggy.azurecr.io/piggymetrics-authservice:prod</image>
 					</to>
 					<container>
 						<jvmFlags>
@@ -109,7 +109,7 @@
 							<jvmFlag>-Xmx2048m</jvmFlag>
 						</jvmFlags>
 						<ports>
-							<port>${AUTH_SERVICE_PORT}</port>
+							<port>5000</port>
 						</ports>
 						<labels>
 							<key1>${project.version}</key1>

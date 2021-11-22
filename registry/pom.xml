@@ -50,7 +50,7 @@
 						<image>mcr.microsoft.com/java/jre-headless:8u232-zulu-alpine</image>
 					</from>
 					<to>
-						<image>containerregistrypiggy.azurecr.io/piggymetrics-registry:version1.0</image>
+						<image>containerregistrypiggy.azurecr.io/piggymetrics-registry:prod</image>
 					</to>
 					<container>
 						<jvmFlags>
@@ -58,7 +58,7 @@
 							<jvmFlag>-Xmx2048m</jvmFlag>
 						</jvmFlags>
 						<ports>
-							<port>${REGISTRY_PORT}</port>
+							<port>8761</port>
 						</ports>
 						<labels>
 							<key1>${project.version}</key1>
