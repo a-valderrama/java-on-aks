@@ -116,8 +116,8 @@ jobs:
         CONTAINER_REGISTRY: ${{ secrets.AZURE_CONTAINER_REGISTRY }}
         IMAGE_TAG: ${{ env.IMAGE_TAG }}
     
-    # - run: |
-    #     source ./.scripts/setup-env-variables-azure-.sh
+    - run: |
+        source ./variables-needed.sh
 
      # Deploy app to AKS
     - uses: azure/k8s-deploy@replaceLogic
